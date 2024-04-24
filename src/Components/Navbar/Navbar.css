@@ -1,0 +1,83 @@
+.nav {
+  margin-left: 2%;
+  margin-right: 2%;
+}
+
+.logo-symbol {
+  color: #fd6d51;
+  font-weight: bold;
+}
+
+#cookbook-maker-logo {
+  background-image: linear-gradient(60deg, #ff5858, #f09819);
+  font-size: 1.2em;
+}
+
+#login,
+#register,
+#CookBook-Maker-logo, 
+#create,
+#logout,
+#profile,
+#dashboard,
+.logo-symbol {
+  font-size: 1.2em;
+  cursor: pointer;
+}
+
+#login,
+#register,
+#create,
+#logout,
+#profile,
+#dashboard {
+  padding: 10px;
+}
+
+#login {
+  color: #ff5858;
+}
+
+#register {
+  color: #f09819;
+}
+
+#create {
+  color: #ff5858;
+}
+
+#dashboard {
+  color: #ff725b;
+}
+
+#profile {
+  color: #f09819;
+}
+
+#logout {
+  color: #f09819;
+}
+
+#login:hover,
+#register:hover,
+#logout:hover,
+#profile:hover,
+#dashboard:hover,
+#create:hover {
+  background-color: #f5f0f6;
+  border-radius: 10px;
+}
+
+.gradient-text {
+  background-clip: text;
+  background-image: linear-gradient(#0c66e4, #6289ed, #8d9bf2);
+  color: transparent;
+}
+
+@media screen and (max-width: 991px) {
+
+  #login,
+  #register {
+    padding: 2%;
+  }
+}

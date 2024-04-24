@@ -1,0 +1,67 @@
+
+.Book-Page {
+    margin: 0 auto;
+    padding: 20px;
+    max-width: 80%;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    text-align: center;
+}
+
+@media screen and (min-width: 1200px) {
+    .Book-Page {
+        margin: 0 20%;
+        padding: 40px;
+        border-left: 2px solid #ccc;
+        border-right: 2px solid #ccc;
+    }
+}
+
+.Book-Page h2 {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.Book-Page h5 {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.Book-Page p {
+    font-size: 16px;
+
+    margin: 0;
+    padding: 0;
+}
+
+.Book-Page .link {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.Book-Page .link:hover {
+    color: #007bff;
+
+}
+
+.Book-Page button {
+    background-color: #ff6600;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 18px;
+    cursor: pointer;
+    margin-top: 20px;
+    scale: .8;
+}
+
+.Book-Page button:hover {
+    background-color: #d35501;
+}

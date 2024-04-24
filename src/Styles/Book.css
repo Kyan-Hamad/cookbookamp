@@ -1,0 +1,64 @@
+.book {
+  width: 150px; 
+  height: 180px;
+  position: relative;
+  margin-bottom: 20px; 
+  background-color: transparent; 
+  border-radius: 8px;
+}
+
+.book-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.book-button {
+  border: none;
+  background-color: transparent;
+  width: 150px; 
+  height: 200px;
+  background-size: 100%;
+  position: relative;
+}
+
+.book-image {
+  width: 140px;
+  height: 195px;
+  border-radius: 8px;
+}
+
+.book-title {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  color: #000;
+  font-weight: 600;
+  font-family: 'Roboto', sans-serif;
+  text-align: center;
+  transition: .3s;
+}
+
+.book-button:hover {
+  background-color: #f2dab9;
+  border-radius: 8px;
+}
+
+.book-button:hover .book-image{
+  opacity: 0.3;
+  cursor: pointer;
+}
+
+.book-button:hover .book-title {
+  opacity: 1;
+}
+
+@media screen and (max-width: 768px) {
+  .book {
+    width: 100%; 
+    height: auto; 
+    max-width: 200px; 
+  }
+}

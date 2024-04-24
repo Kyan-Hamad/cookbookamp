@@ -17,7 +17,6 @@ function Navbar({signOut}) {
     setIsNavCollapsed(true); 
   };
 
-
   const handleNavToggle = () => {
     setIsNavCollapsed(!isNavCollapsed); 
   };

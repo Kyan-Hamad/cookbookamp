@@ -38,15 +38,21 @@ function NewBookForm() {
     const data = {
       title: form.get("title"),
       tableOfContents: form.get("tableOfContents"),
-      imagePath: image.name,
     };
 
     try {
-      if (data.imagePath) {
+      let imageUrl = '';
+
+      if (image) {
+        const imageKey = `${data.title}-${image.name}`; // Customize key if needed
         await uploadData({
-          key: data.imagePath,
+          key: imageKey,
           data: image,
         });
+
+        const imageResponse = await getUrl({ key: imageKey });
+        imageUrl = imageResponse.url;
+        data.imagePath = imageUrl; // Use URL as imagePath
       }
 
       await client.graphql({
@@ -58,7 +64,7 @@ function NewBookForm() {
       event.target.reset();
       navigate('/dashboard');
     } catch (error) {
-      console.error('Error creating book:', error);
+        console.error('Error creating book:', error);
     }
   }
 
@@ -68,27 +74,13 @@ function NewBookForm() {
       <form onSubmit={createBook}>
         <div className="form-group">
           <label htmlFor="title">Title:</label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            required
-          />
+          <input type="text" id="title" name="title" required />
 
           <label htmlFor="tableOfContents">Table of Contents:</label>
-          <input
-            type="text"
-            id="tableOfContents"
-            name="tableOfContents"
-          />
+          <input type="text" id="tableOfContents" name="tableOfContents" />
 
           <label htmlFor="image">Cover Image:</label>
-          <input
-            type="file"
-            id="image"
-            name="image"
-            accept="image/*"
-          />
+          <input type="file" id="image" name="image" accept="image/*" />
         </div>
 
         <button type="submit">Create Book</button>

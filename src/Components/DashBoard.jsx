@@ -6,7 +6,7 @@ import { remove, getUrl } from 'aws-amplify/storage';
 import BookShelf from './BookShelf';
 import NewBookButton from './NewBookButton';
 import '../Styles/Dashboard.css';
-//comment to test
+
 const client = generateClient();
 
 function Dashboard() {

@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import '../Styles/BookDetails.css';
-import '../Styles/BookDetails.css';
 import { listBooks } from '../graphql/queries';
+import {updateBook as updateBookMutation } from '../graphql/mutations';
 import { getUrl } from 'aws-amplify/storage';
 import { generateClient } from 'aws-amplify/api';
+import AddToContentsForm from './AddtoContentsForm';
 
 const client = generateClient();
 
@@ -17,25 +18,33 @@ const BookDetails = () => {
     const navigate = useNavigate();
     const [books, setBooks] = useState([]);
 
+    useEffect(() => {
+        fetchBooks();
+    }, []);
 
-  useEffect(() => {
-    fetchBooks();
-  }, []);
+    async function fetchBooks() {
+        try {
+            const apiData = await client.graphql({ query: listBooks });
+            const booksFromAPI = apiData.data.listBooks.items;
+            await Promise.all(
+                booksFromAPI.map(async (book) => {
+                    if (book.imagePath) {
+                        const url = await getUrl({ key: book.imagePath });
+                        book.image = url.url;
+                    }
+                    return book;
+                })
+            );
+            setBooks(booksFromAPI);
 
-  async function fetchBooks() {
-    const apiData = await client.graphql({ query: listBooks });
-    const booksFromAPI = apiData.data.listBooks.items;
-    await Promise.all(
-      booksFromAPI.map(async (book) => {
-        if (book.imagePath) {
-          const url = await getUrl({ key: book.imagePath });
-          book.image = url.url;
+            const currentBook = booksFromAPI.find((book) => book.title === title);
+            if (currentBook && currentBook.tableOfContents) {
+                setTableOfContents(currentBook.tableOfContents.split('\n'));
+            }
+        } catch (error) {
+            console.error('Error fetching books:', error);
         }
-        return book;
-      })
-    );
-    setBooks(booksFromAPI);
-  }
+    }
 
     const handleContentClick = (content) => {
         if (content && content.startsWith && content.startsWith('<a href=')) {
@@ -44,7 +53,6 @@ const BookDetails = () => {
         } else {
             setPageId(content);
             setShowForm(true);
-
         }
     };
 
@@ -73,7 +81,21 @@ const BookDetails = () => {
         setTableOfContents(items);
 
         try {
-            const apiData = await client.graphql({ query: listBooks });
+            const apiData = await client.graphql({
+                query: listBooks,
+                variables: { filter: { title: { eq: title } } },
+            });
+
+            const book = apiData.data.listBooks.items[0];
+            await client.graphql({
+                query: updateBookMutation,
+                variables: {
+                    input: {
+                        id: book.id,
+                        tableOfContents: items.join('\n')
+                    }
+                }
+            });
         } catch (error) {
             console.error('Error updating table of contents:', error);
         }
@@ -91,7 +113,6 @@ const BookDetails = () => {
                                 {tableOfContents.map((content, index) => (
                                     <Draggable key={index} draggableId={`content-${index}`} index={index}>
                                         {(provided) => (
-
                                             <div
                                                 ref={provided.innerRef}
                                                 {...provided.draggableProps}
@@ -104,7 +125,6 @@ const BookDetails = () => {
                                                     {renderContent(content, index)}
                                                 </span>
                                             </div>
-
                                         )}
                                     </Draggable>
                                 ))}
@@ -117,7 +137,7 @@ const BookDetails = () => {
             <div className="add-button-container">
                 <button className="add-button" onClick={() => setShowForm(true)}>Add Content</button>
             </div>
-
+            {showForm && !pageId && <AddToContentsForm title={title} tableOfContents={tableOfContents} setTableOfContents={setTableOfContents} setShowForm={setShowForm} />}
         </div>
     );
 };

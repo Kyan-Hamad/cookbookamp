@@ -17,18 +17,22 @@ function NewBookForm() {
   }, []);
 
   async function fetchBooks() {
-    const apiData = await client.graphql({ query: listBooks });
-    const booksFromAPI = apiData.data.listBooks.items;
-    await Promise.all(
-      booksFromAPI.map(async (book) => {
-        if (book.imagePath) {
-          const url = await getUrl({ key: book.imagePath });
-          book.image = url.url;
-        }
-        return book;
-      })
-    );
-    setBooks(booksFromAPI);
+    try {
+        const apiData = await client.graphql({ query: listBooks });
+        const booksFromAPI = apiData.data.listBooks.items;
+        await Promise.all(
+            booksFromAPI.map(async (book) => {
+                if (book.imagePath) {
+                    const url = await getUrl({ key: book.imagePath });
+                    book.image = url.url;
+                }
+                return book;
+            })
+        );
+        setBooks(booksFromAPI);
+    } catch (error) {
+        console.error('Error fetching books:', error);
+    }
   }
 
   async function createBook(event) {
@@ -36,33 +40,32 @@ function NewBookForm() {
     const form = new FormData(event.target);
     const image = form.get("image");
     const data = {
-      title: form.get("title"),
-      tableOfContents: form.get("tableOfContents"),
+        title: form.get("title"),
+        tableOfContents: form.get("tableOfContents"),
     };
 
     try {
-      let imageUrl = '';
+        let imageKey = '';
 
-      if (image) {
-        const imageKey = `${data.title}-${image.name}`; // Customize key if needed
-        await uploadData({
-          key: imageKey,
-          data: image,
+        if (image) {
+            imageKey = `${data.title}-${image.name}`; 
+            await uploadData({
+                key: imageKey,
+                data: image,
+            });
+
+            const imageResponse = await getUrl({ key: imageKey });
+            data.imagePath = imageResponse.url;
+        }
+
+        await client.graphql({
+            query: createBookMutation,
+            variables: { input: data },
         });
 
-        const imageResponse = await getUrl({ key: imageKey });
-        imageUrl = imageResponse.url;
-        data.imagePath = imageUrl; // Use URL as imagePath
-      }
-
-      await client.graphql({
-        query: createBookMutation,
-        variables: { input: data },
-      });
-
-      fetchBooks();
-      event.target.reset();
-      navigate('/dashboard');
+        fetchBooks();  
+        event.target.reset();
+        navigate('/dashboard');
     } catch (error) {
         console.error('Error creating book:', error);
     }
@@ -76,8 +79,8 @@ function NewBookForm() {
           <label htmlFor="title">Title:</label>
           <input type="text" id="title" name="title" required />
 
-          <label htmlFor="tableOfContents">Table of Contents:</label>
-          <input type="text" id="tableOfContents" name="tableOfContents" />
+          {/* <label htmlFor="tableOfContents">Table of Contents:</label>
+          <input type="text" id="tableOfContents" name="tableOfContents" /> */}
 
           <label htmlFor="image">Cover Image:</label>
           <input type="file" id="image" name="image" accept="image/*" />

@@ -48,7 +48,7 @@ function Navbar({signOut}) {
                 <p className="nav-link" onClick={() => handleNavigation("/profile")}>
                   <span id="profile">Profile</span>
                 </p>
-              </li> */}
+              </li>  */}
               <li className="nav-item">
                 <p className="nav-link" onClick={signOut}>
                   <span id="logout">Logout</span>

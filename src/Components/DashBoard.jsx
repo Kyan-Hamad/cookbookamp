@@ -8,7 +8,7 @@ import NewBookButton from './NewBookButton';
 import '../Styles/Dashboard.css';
 
 const client = generateClient();
-
+  
 function Dashboard() {
   const [books, setBooks] = useState([]);
 

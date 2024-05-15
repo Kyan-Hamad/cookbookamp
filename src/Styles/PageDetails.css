@@ -1,0 +1,219 @@
+pagedetails
+.book-header p{
+
+text-align: center;
+
+color: #f86502;
+
+font-weight: bold;
+
+font-size: 28px;
+
+text-align: center;
+
+}
+
+  
+
+.recipe-page {
+
+max-width: 600px;
+
+margin: 20px auto;
+
+padding: 20px;
+
+border: 1px solid #ccc;
+
+border-radius: 5px;
+
+}
+
+  
+
+.recipe-page h2 {
+
+font-size: 24px;
+
+margin-bottom: 20px;
+
+font-weight: bold;
+
+border-bottom: 1px solid #ccc;
+
+padding-bottom: 10px;
+
+text-align: center;
+
+}
+
+  
+
+.recipe-page p {
+
+font-size: 16px;
+
+margin-bottom: 10px;
+
+text-align: center;
+
+}
+
+  
+
+.recipe-page .recipe-name,
+
+.recipe-page .steps,
+
+.recipe-page .ingredient-title {
+
+font-weight: bold;
+
+font-size: 20px;
+
+text-align: center;
+
+}
+
+  
+
+.recipe-page .ingredient-list {
+
+list-style-type: none;
+
+padding-left: 135px;
+
+text-align: left;
+
+}
+
+  
+
+#ingbullet {
+
+color: #f86502;
+
+font-size: 20px;
+
+}
+
+  
+
+.recipe-page .divider {
+
+border-bottom: 1px solid #ccc;
+
+margin: 20px auto;
+
+max-width: 50%;
+
+}
+
+  
+
+.recipe-page .edit-button {
+
+display: block;
+
+margin: 20px auto;
+
+background-color: #ff6600;
+
+color: #fff;
+
+border: none;
+
+padding: 10px 20px;
+
+font-size: 16px;
+
+cursor: pointer;
+
+text-align: center;
+
+}
+
+  
+
+.recipe-page .edit-button:hover {
+
+background-color: #d35501;
+
+}
+
+  
+  
+
+.step-list {
+
+text-align: center;
+
+}
+
+  
+
+.step-item{
+
+list-style-type: none;
+
+text-align: left;
+
+margin-bottom: 15px;;
+
+}
+
+  
+
+.step-item::marker {
+
+color: transparent;
+
+}
+
+  
+
+#recipe-name, #story, #ingredients, #steps {
+
+color: #f86502;
+
+}
+
+  
+
+.ingredient-header {
+
+display: flex;
+
+justify-content: flex-end;
+
+margin-bottom: -35px;
+
+}
+
+  
+
+.convert-button {
+
+margin-left: 10px;
+
+  
+
+}
+
+  
+
+#step-count{
+
+font-weight: 800;
+
+font-size: medium;
+
+}
+
+  
+
+#rec-book-title{
+
+cursor: pointer;
+
+}

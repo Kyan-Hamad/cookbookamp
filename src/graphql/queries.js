@@ -20,19 +20,11 @@ export const getBook = /* GraphQL */ `
 `;
 export const listBooks = /* GraphQL */ `
   query ListBooks(
-    $id: ID
     $filter: ModelBookFilterInput
     $limit: Int
     $nextToken: String
-    $sortDirection: ModelSortDirection
   ) {
-    listBooks(
-      id: $id
-      filter: $filter
-      limit: $limit
-      nextToken: $nextToken
-      sortDirection: $sortDirection
-    ) {
+    listBooks(filter: $filter, limit: $limit, nextToken: $nextToken) {
       items {
         id
         title
@@ -70,19 +62,11 @@ export const getPage = /* GraphQL */ `
 `;
 export const listPages = /* GraphQL */ `
   query ListPages(
-    $id: ID
     $filter: ModelPageFilterInput
     $limit: Int
     $nextToken: String
-    $sortDirection: ModelSortDirection
   ) {
-    listPages(
-      id: $id
-      filter: $filter
-      limit: $limit
-      nextToken: $nextToken
-      sortDirection: $sortDirection
-    ) {
+    listPages(filter: $filter, limit: $limit, nextToken: $nextToken) {
       items {
         id
         bookId

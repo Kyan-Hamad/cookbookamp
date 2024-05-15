@@ -1,0 +1,88 @@
+.edit-page-form {
+max-width: 600px;
+margin: 20px auto;
+padding: 20px;
+border: 1px solid #ccc;
+border-radius: 5px;
+}
+
+.edit-page-form h3 {
+font-size: 20px;
+margin-bottom: 20px;
+}
+
+.edit-page-form label {
+font-size: 16px;
+margin-bottom: 5px;
+display: block;
+}
+
+.edit-page-form textarea,
+.edit-page-form input[type="text"],
+.edit-page-form input[type="number"],
+.edit-page-form select {
+width: calc(100% - 20px);
+padding: 10px;
+font-size: 16px;
+margin-bottom: 10px;
+}
+
+.edit-page-form .ingredient-inputs {
+display: flex;
+align-items: center;
+}
+
+.edit-page-form .ingredient-inputs input[type="text"],
+.edit-page-form .ingredient-inputs input[type="number"],
+.edit-page-form .ingredient-inputs select {
+margin-right: 10px;
+flex: 1;
+}
+
+.edit-page-form .step-inputs {
+margin-bottom: 10px;
+}
+
+.edit-page-form .step {
+width: 100%;
+padding: 10px;
+border: 1px solid #ccc;
+border-radius: 5px;
+margin-bottom: 5px;
+}
+
+.add-step-button, .add-ingredient-button{
+background-color: #f86502;
+color: #fff;
+padding: 10px;
+border: none;
+border-radius: 5px;
+cursor: pointer;
+margin-top: 10px;
+margin-bottom: 20px;
+}
+
+.add-step-button:hover {
+background-color: #c75204;
+}
+
+.save-button {
+text-align: center;
+background-color: #f86502;
+color: #fff;
+padding: 10px;
+border: none;
+border-radius: 5px;
+cursor: pointer;
+margin-top: 10px;
+margin-bottom: 20px;
+width: 30%;
+}
+
+.save-button:hover {
+background-color: #c75204;
+}
+
+.button-container {
+text-align: center;
+}

@@ -3,7 +3,7 @@
 input AMPLIFY { globalAuthRule: AuthRule = { allow: public } } # FOR TESTING ONLY!
 
 type Book @model {
-    id: ID! @primaryKey
+    id: ID! 
     title: String!
     tableOfContents: String
     imagePath: String
@@ -12,7 +12,7 @@ type Book @model {
 }
 
 type Page @model {
-    id: ID! @primaryKey
+    id: ID!
     bookId: ID! @index(name: "byBook", sortKeyFields: ["bookTitle"])
     bookTitle: String!
     pageId: String!

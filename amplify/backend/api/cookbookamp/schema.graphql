@@ -5,7 +5,7 @@ input AMPLIFY { globalAuthRule: AuthRule = { allow: public } } # FOR TESTING ONL
 type Book @model {
     id: ID! 
     title: String!
-    tableOfContents: String
+    tableOfContents: String!
     imagePath: String
     # Relationship with pages using @hasMany
     pages: [Page] @hasMany(indexName: "byBook", fields: ["id"])
@@ -16,7 +16,7 @@ type Page @model {
     bookId: ID! @index(name: "byBook", sortKeyFields: ["bookTitle"])
     bookTitle: String!
     pageId: String!
-    recipeStory: String
+    recipeStory: String!
     ingredients: [Ingredient]
     steps: [String]
 }

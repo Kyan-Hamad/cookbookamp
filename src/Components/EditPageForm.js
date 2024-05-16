@@ -39,6 +39,19 @@ const EditPageForm = ({ onSave, pageId, recipeStory: initialStory, ingredients: 
     // Function to submit form
     const submitForm = async () => {
         try {
+            // Validate ingredients array
+            if (!ingredients || ingredients.length === 0) {
+                console.error('Ingredients array is empty or null.');
+                return;
+            }
+    
+            // Check ingredients format
+            ingredients.forEach((ingredient, index) => {
+                if (!ingredient.name || !ingredient.quantity || !ingredient.unit) {
+                    console.error(`Invalid ingredient at index ${index}:`, ingredient);
+                }
+            });
+    
             // Construct the input for the updatePageMutation
             const input = {
                 id: pageId,
@@ -46,20 +59,20 @@ const EditPageForm = ({ onSave, pageId, recipeStory: initialStory, ingredients: 
                 ingredients: JSON.stringify(ingredients),
                 steps: JSON.stringify(steps),
             };
-
+    
             console.log('Submitting updated page:', input);
-
+    
             // Perform the GraphQL mutation
             const response = await client.graphql({
                 query: updatePageMutation,
                 variables: { input },
             });
-
+    
             if (response.errors) {
                 console.error('Errors in response:', response.errors);
                 return;
             }
-
+    
             console.log('Page updated successfully:', response.data);
             
             // Call the onSave callback function
@@ -68,6 +81,8 @@ const EditPageForm = ({ onSave, pageId, recipeStory: initialStory, ingredients: 
             console.error('Error updating page:', error);
         }
     };
+    
+    
 
     // Define metric and US units
     const metricUnits = ['L', 'ml', 'g', 'kg'].sort();

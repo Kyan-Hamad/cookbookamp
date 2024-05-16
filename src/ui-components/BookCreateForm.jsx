@@ -41,7 +41,7 @@ export default function BookCreateForm(props) {
   };
   const validations = {
     title: [{ type: "Required" }],
-    tableOfContents: [],
+    tableOfContents: [{ type: "Required" }],
     imagePath: [],
   };
   const runValidationTasks = async (
@@ -154,7 +154,7 @@ export default function BookCreateForm(props) {
       ></TextField>
       <TextField
         label="Table of contents"
-        isRequired={false}
+        isRequired={true}
         isReadOnly={false}
         value={tableOfContents}
         onChange={(e) => {

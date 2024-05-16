@@ -62,7 +62,7 @@ export default function BookUpdateForm(props) {
   React.useEffect(resetStateValues, [bookRecord]);
   const validations = {
     title: [{ type: "Required" }],
-    tableOfContents: [],
+    tableOfContents: [{ type: "Required" }],
     imagePath: [],
   };
   const runValidationTasks = async (
@@ -92,7 +92,7 @@ export default function BookUpdateForm(props) {
         event.preventDefault();
         let modelFields = {
           title,
-          tableOfContents: tableOfContents ?? null,
+          tableOfContents,
           imagePath: imagePath ?? null,
         };
         const validationResponses = await Promise.all(
@@ -173,7 +173,7 @@ export default function BookUpdateForm(props) {
       ></TextField>
       <TextField
         label="Table of contents"
-        isRequired={false}
+        isRequired={true}
         isReadOnly={false}
         value={tableOfContents}
         onChange={(e) => {

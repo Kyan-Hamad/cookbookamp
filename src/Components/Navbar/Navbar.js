@@ -26,15 +26,7 @@ function Navbar({signOut}) {
       <p className="navbar-brand" onClick={() => handleNavigation("/")}>
         <code className="logo-symbol"> 🥘 CookBook Maker</code>
       </p>
-      <button
-        className="navbar-toggler"
-        type="button"
-        onClick={handleNavToggle} 
-      >
-        <span className="navbar-toggler-icon"></span>
-      </button>
       <div
-        className={`${isNavCollapsed ? "collapse" : ""} navbar-collapse justify-content-end`}
       >
         <ul className="navbar-nav">
           {withAuthenticator ? (

@@ -44,7 +44,7 @@ const AddToContentsForm = ({ title, tableOfContents, setTableOfContents, setShow
                 bookId,
                 bookTitle: title,
                 pageId: pageId,
-                recipeStory: '',
+                recipeStory: ["story"],
                 ingredients: [],
                 steps: []
             };

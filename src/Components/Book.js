@@ -8,7 +8,7 @@ function Book({ title, tableOfContents, imagePath }) {
       <Link to={{ pathname: `/books/${title}`, state: { tableOfContents } }}> 
         <div className="book-container">
           <button className="book-button">
-            <img className="book-image" src={imagePath} alt={title} />
+            <img className="book-image" src='https://kyan-hamad.github.io/RPG-Game/CookBook-Maker-Logo.png' alt={title} />
             <span className="book-title">{title}</span> 
           </button>
         </div>

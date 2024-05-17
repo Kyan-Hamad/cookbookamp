@@ -14,7 +14,8 @@ function BookShelf({ books, onDelete }) {
               title={book.title}
               image={book.image}
             />
-            <button onClick={() => onDelete({ id: book.id, image: book.image })}>Delete</button>
+            <br></br>
+            <button className="delete-button" onClick={() => onDelete({ id: book.id, image: book.image })}>Delete</button>
           </div>
         ))
       )}

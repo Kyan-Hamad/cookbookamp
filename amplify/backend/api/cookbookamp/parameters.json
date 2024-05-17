@@ -1,5 +1,6 @@
 {
   "AppSyncApiName": "cookbookamp",
   "DynamoDBBillingMode": "PAY_PER_REQUEST",
-  "DynamoDBEnableServerSideEncryption": false
+  "DynamoDBEnableServerSideEncryption": false,
+  "AuthModeLastUpdated": "2024-05-17T20:09:40.846Z"
 }

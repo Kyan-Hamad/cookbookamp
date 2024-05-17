@@ -6,85 +6,50 @@ import '../Styles/EditPageForm.css';
 const client = generateClient();
 
 const EditPageForm = ({ onSave, pageId, recipeStory: initialStory, ingredients: initialIngredients, steps: initialSteps }) => {
-    // State management
     const [recipeStory, setRecipeStory] = useState(initialStory || '');
     const [ingredients, setIngredients] = useState(initialIngredients || [{ name: '', quantity: '', unit: '' }]);
     const [steps, setSteps] = useState(initialSteps || ['']);
 
-    // Handlers for form changes
     const handleIngredientChange = (index, key, value) => {
-        setIngredients((prevIngredients) => {
-            const updatedIngredients = [...prevIngredients];
-            updatedIngredients[index][key] = value;
-            return updatedIngredients;
-        });
+        const updatedIngredients = [...ingredients];
+        updatedIngredients[index][key] = value;
+        setIngredients(updatedIngredients);
     };
 
     const handleAddIngredient = () => {
-        setIngredients((prevIngredients) => [...prevIngredients, { name: '', quantity: '', unit: '' }]);
+        setIngredients([...ingredients, { name: '', quantity: '', unit: '' }]);
     };
 
     const handleStepChange = (index, value) => {
-        setSteps((prevSteps) => {
-            const updatedSteps = [...prevSteps];
-            updatedSteps[index] = value;
-            return updatedSteps;
-        });
+        const updatedSteps = [...steps];
+        updatedSteps[index] = value;
+        setSteps(updatedSteps);
     };
 
     const handleAddStep = () => {
-        setSteps((prevSteps) => [...prevSteps, '']);
+        setSteps([...steps, '']);
     };
 
-    // Function to submit form
     const submitForm = async () => {
         try {
-            // Validate ingredients array
-            if (!ingredients || ingredients.length === 0) {
-                console.error('Ingredients array is empty or null.');
-                return;
-            }
-    
-            // Check ingredients format
-            ingredients.forEach((ingredient, index) => {
-                if (!ingredient.name || !ingredient.quantity || !ingredient.unit) {
-                    console.error(`Invalid ingredient at index ${index}:`, ingredient);
+            await client.graphql({
+                query: updatePageMutation,
+                variables: {
+                    input: {
+                        id: pageId,
+                        recipeStory,
+                        ingredients,
+                        steps
+                    }
                 }
             });
-    
-            // Construct the input for the updatePageMutation
-            const input = {
-                id: pageId,
-                recipeStory,
-                ingredients: JSON.stringify(ingredients),
-                steps: JSON.stringify(steps),
-            };
-    
-            console.log('Submitting updated page:', input);
-    
-            // Perform the GraphQL mutation
-            const response = await client.graphql({
-                query: updatePageMutation,
-                variables: { input },
-            });
-    
-            if (response.errors) {
-                console.error('Errors in response:', response.errors);
-                return;
-            }
-    
-            console.log('Page updated successfully:', response.data);
-            
-            // Call the onSave callback function
-            onSave(input);
+            onSave({ recipeStory, ingredients, steps });
         } catch (error) {
             console.error('Error updating page:', error);
         }
     };
-    
-    
 
-    // Define metric and US units
+    // Define metric and US units, including the dry versions
     const metricUnits = ['L', 'ml', 'g', 'kg'].sort();
     const usUnits = ['teaspoon', 'dry tablespoon', 'tablespoon', 'dry teaspoon', 'fl oz', 'cup', 'dry cup', 'pints', 'quarts', 'gallons', 'oz', 'lbs'].sort();
 
@@ -99,7 +64,7 @@ const EditPageForm = ({ onSave, pageId, recipeStory: initialStory, ingredients: 
                         onChange={(e) => setRecipeStory(e.target.value)}
                         placeholder="Enter recipe story"
                         className="recipe-story"
-                    />
+                    ></textarea>
                 </div>
                 <div>
                     <label>Ingredients:</label>
@@ -149,7 +114,7 @@ const EditPageForm = ({ onSave, pageId, recipeStory: initialStory, ingredients: 
                                 onChange={(e) => handleStepChange(index, e.target.value)}
                                 placeholder={`Step ${index + 1}`}
                                 className="step"
-                            />
+                            ></textarea>
                         </div>
                     ))}
                     <button type="button" onClick={handleAddStep} className="add-step-button">Add Step</button>

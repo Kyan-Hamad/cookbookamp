@@ -8,83 +8,80 @@ import { updatePage as updatePageMutation } from '../graphql/mutations';
 
 const client = generateClient();
 
+
 const PageDetails = () => {
-    const { pageId } = useParams();
-    const [pageContent, setPageContent] = useState({});
-    const [showForm, setShowForm] = useState(false);
-    const { title } = useParams();
-    const navigateTo = useNavigate();
-
-    const handleNavigation = (route) => {
-        navigateTo(route);
-    };
-
-    useEffect(() => {
-        const fetchPageContent = async () => {
-            if (!pageId) return;
-
-            try {
-                const apiData = await client.graphql({ query: getPage, variables: { id: pageId } });
-                setPageContent(apiData.data.getPage);
-            } catch (error) {
-                console.error('Error fetching page content:', error);
-            }
-        };
-
-        fetchPageContent();
-    }, [pageId]);
-
-    const handleSavePage = async (newPageContent) => {
-        setPageContent((prevPageContent) => ({
-            ...prevPageContent,
-            ...newPageContent,
-        }));
-        setShowForm(false);
-
+const { pageId, title } = useParams();
+const [pageContent, setPageContent] = useState({});
+const [showForm, setShowForm] = useState(false);
+const navigateTo = useNavigate();
+const handleNavigation = (route) => {
+    navigateTo(route);
+};
+useEffect(() => {
+    const fetchPageContent = async () => {
+        if (!pageId) return;
         try {
-            await client.graphql({
-                query: updatePageMutation,
-                variables: {
-                    input: {
-                        id: pageId,
-                        ...newPageContent,
-                    }
-                }
-            });
+            const apiData = await client.graphql({ query: getPage, variables: { id: pageId } });
+            if (apiData && apiData.data && apiData.data.getPage) {
+                setPageContent(apiData.data.getPage);
+            } else {
+                console.error('Received invalid data:', apiData);
+                setPageContent({}); // Reset or set to default to prevent errors
+            }
         } catch (error) {
-            console.error('Error updating page:', error);
+            console.error('Error fetching page content:', error);
         }
     };
+    fetchPageContent();
+}, [pageId]);
+const handleSavePage = async (newPageContent) => {
+    setPageContent((prevPageContent) => ({
+        ...prevPageContent,
+        ...newPageContent,
+    }));
+    setShowForm(false);
+    try {
+        await client.graphql({
+            query: updatePageMutation,
+            variables: {
+                input: {
+                    id: pageId,
+                    ...newPageContent,
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error updating page:', error);
+    }
+};
 
-// Conversion rates for dry and liquid measurements. 
 const conversionRates = {
     dry: {
         usToMetric: {
-            'cup': 120, // Example conversion rate: 1 dry cup = 120 grams (may vary based on ingredient, I am basing on flour)
-            'tablespoon': 15, // Example conversion rate: 1 dry tablespoon = 15 grams 
-            'dry teaspoon': 5, // Example conversion rate: 1 dry teaspoon = 5 grams 
+            'cup': 120,
+            'tablespoon': 15,
+            'dry teaspoon': 5,
         },
         metricToUS: {
-            'gramsToCup': 1 / 120, // Example conversion rate: 1 gram = 1/120 dry cup 
-            'gramsToTablespoon': 1 / 15, // Example conversion rate: 1 gram = 1/15 dry tablespoon 
-            'gramsToTeaspoon': 1 / 5, // Example conversion rate: 1 gram = 1/5 dry teaspoon 
+            'gramsToCup': 1 / 120,
+            'gramsToTablespoon': 1 / 15,
+            'gramsToTeaspoon': 1 / 5,
         },
     },
     liquid: {
         usToMetric: {
-            'cup': 236.588, // 1 cup = 236.588 milliliters
-            'tablespoon': 14.7868, // 1 tablespoon = 14.7868 milliliters
-            'teaspoon': 4.92892, // 1 teaspoon = 4.92892 milliliters
+            'cup': 236.588,
+            'tablespoon': 14.7868,
+            'teaspoon': 4.92892,
         },
         metricToUS: {
-            'mlToCup': 1 / 236.588, // 1 milliliter = 1/236.588 cups
-            'mlToTablespoon': 1 / 14.7868, // 1 milliliter = 1/14.7868 tablespoons
-            'mlToTeaspoon': 1 / 4.92892, // 1 milliliter = 1/4.92892 teaspoons
+            'mlToCup': 1 / 236.588,
+            'mlToTablespoon': 1 / 14.7868,
+            'mlToTeaspoon': 1 / 4.92892,
         },
     },
-};    
+};
 
-// Function to convert dry measurements from US to metric
 const convertDryUSToMetric = (ingredients) => {
 return ingredients.map((ingredient) => {
     const { name, quantity, unit } = ingredient;
@@ -107,7 +104,6 @@ return ingredients.map((ingredient) => {
 });
 };
 
-// Function to convert dry measurements from metric to US
 const convertDryMetricToUS = (ingredients) => {
 return ingredients.map((ingredient) => {
     const { name, quantity, unit } = ingredient;
@@ -130,11 +126,9 @@ return ingredients.map((ingredient) => {
 });
 };
 
-// Function to convert US units to metric
 const convertUSToMetric = (ingredients) => {
 ingredients = convertDryUSToMetric(ingredients);
 
-// Conversion rates for volume and weight from US to metric units
 const conversionRates = {
     volume: {
         'teaspoon': 4.92892,
@@ -151,7 +145,6 @@ const conversionRates = {
     }
 };
 
-// Convert each ingredient from US to metric units
 return ingredients.map((ingredient) => {
     const { name, quantity, unit } = ingredient;
     let convertedQuantity = quantity;
@@ -175,7 +168,6 @@ return ingredients.map((ingredient) => {
 });
 };
 
-// Function to convert metric units to US
 const convertMetricToUS = (ingredients) => {
 ingredients = convertDryMetricToUS(ingredients);
 
@@ -214,7 +206,6 @@ return ingredients.map((ingredient) => {
 };
 
 const handleConvertToMetric = () => {
-// Convert ingredients to metric
 const convertedIngredients = convertUSToMetric(pageContent.ingredients);
 handleSavePage({ ...pageContent, ingredients: convertedIngredients });
 };
@@ -225,51 +216,46 @@ const convertedIngredients = convertMetricToUS(pageContent.ingredients);
 handleSavePage({ ...pageContent, ingredients: convertedIngredients });
 };
 
-    const renderContent = () => {
-
-        return (
-            <>
-                {showForm ? (
-                    <EditPageForm
-                        onSave={handleSavePage}
-                        pageId={pageId}
-                        recipeStory={pageContent.recipeStory}
-                        ingredients={pageContent.ingredients}
-                        steps={pageContent.steps}
-                    />
-                ) : (
-                    <div className='book-header'>
-                        <p id='rec-book-title' onClick={() => handleNavigation("./..")}>{title}</p>
-                        <div className='recipe-page'>
-                            <p className="recipe-name" id='recipe-name'>{pageId}</p>
-                            {pageContent && pageContent.recipeStory && (
-                                <div className="divider"></div>
-                            )}
-                            <p className="recipe-story">{pageContent.recipeStory}</p>
-
+const renderContent = () => {
+    return (
+        <>
+            {showForm ? (
+                <EditPageForm
+                    onSave={handleSavePage}
+                    pageId={pageId}
+                    recipeStory={pageContent.recipeStory}
+                    ingredients={pageContent.ingredients}
+                    steps={pageContent.steps}
+                />
+            ) : (
+                <div className='book-header'>
+                    <p id='rec-book-title' onClick={() => handleNavigation("./..")}>{title}</p>
+                    <div className='recipe-page'>
+                        <p className="recipe-name" id='recipe-name'>{pageId}</p>
+                        {pageContent && pageContent.recipeStory && (
                             <div className="divider"></div>
-
-                            <p className="ingredient-title" id='ingredients'>Ingredients:</p>
-                            <div className="ingredient-header">
-                                <button onClick={handleConvertToMetric} className="convert-button">Metric</button>
-                                <button onClick={handleConvertToUS} className="convert-button">US</button>
-                            </div>
-                            <ul className="ingredient-list">
-                                {pageContent.ingredients && pageContent.ingredients.map((ingredient, index) => {
-                                    const hasContent = ingredient.name || ingredient.quantity || ingredient.unit;
-                                    return (
-                                        <li key={index} className="ingredient-item">
-                                            {hasContent && <code id='ingbullet'>&bull;</code>} {ingredient.quantity} {ingredient.unit} {ingredient.name}
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-
-                            <div className="divider"></div>
-
-                            {Array.isArray(pageContent.steps) && pageContent.steps.length > 0 ? (
-                                <div>
-                                    <p className="steps" id='steps'>Steps:</p>
+                        )}
+                        <p className="recipe-story">{pageContent?.recipeStory}</p>
+                        <div className="divider"></div>
+                        <p className="ingredient-title" id='ingredients'>Ingredients:</p>
+                        <div className="ingredient-header">
+                            <button onClick={handleConvertToMetric} className="convert-button">Metric</button>
+                            <button onClick={handleConvertToUS} className="convert-button">US</button>
+                        </div>
+                        <ul className="ingredient-list">
+                            {pageContent.ingredients && pageContent.ingredients.map((ingredient, index) => {
+                                const hasContent = ingredient.name || ingredient.quantity || ingredient.unit;
+                                return (
+                                    <li key={index} className="ingredient-item">
+                                        {hasContent && <code id='ingbullet'>•</code>} {ingredient.quantity} {ingredient.unit} {ingredient.name}
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                        <div className="divider"></div>
+                        {Array.isArray(pageContent.steps) && pageContent.steps.length > 0 ? (
+                            <div>
+                                <p className="steps" id='steps'>Steps:</p>
                                     <ol className="step-list">
                                         {pageContent.steps.map((step, index) => {
                                             const hasStepContent = step.trim() !== '';

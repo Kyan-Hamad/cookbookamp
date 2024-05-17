@@ -5,7 +5,7 @@
  **************************************************************************/
 
 import * as React from "react";
-import { GridProps, TextFieldProps } from "@aws-amplify/ui-react";
+import { AutocompleteProps, GridProps, TextFieldProps } from "@aws-amplify/ui-react";
 export declare type EscapeHatchProps = {
     [elementHierarchy: string]: Record<string, unknown>;
 } | null;
@@ -25,11 +25,13 @@ export declare type BookUpdateFormInputValues = {
     title?: string;
     tableOfContents?: string;
     imagePath?: string;
+    pages?: any[];
 };
 export declare type BookUpdateFormValidationValues = {
     title?: ValidationFunction<string>;
     tableOfContents?: ValidationFunction<string>;
     imagePath?: ValidationFunction<string>;
+    pages?: ValidationFunction<any>;
 };
 export declare type PrimitiveOverrideProps<T> = Partial<T> & React.DOMAttributes<HTMLDivElement>;
 export declare type BookUpdateFormOverridesProps = {
@@ -37,6 +39,7 @@ export declare type BookUpdateFormOverridesProps = {
     title?: PrimitiveOverrideProps<TextFieldProps>;
     tableOfContents?: PrimitiveOverrideProps<TextFieldProps>;
     imagePath?: PrimitiveOverrideProps<TextFieldProps>;
+    pages?: PrimitiveOverrideProps<AutocompleteProps>;
 } & EscapeHatchProps;
 export declare type BookUpdateFormProps = React.PropsWithChildren<{
     overrides?: BookUpdateFormOverridesProps | undefined | null;

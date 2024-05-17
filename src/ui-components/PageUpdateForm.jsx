@@ -21,8 +21,8 @@ import {
 } from "@aws-amplify/ui-react";
 import { fetchByPath, getOverrideProps, validateField } from "./utils";
 import { generateClient } from "aws-amplify/api";
-import { getBook, listPages } from "../graphql/queries";
-import { updateBook, updatePage } from "../graphql/mutations";
+import { getBook, getPage, listBooks } from "../graphql/queries";
+import { updatePage } from "../graphql/mutations";
 const client = generateClient();
 function ArrayField({
   items = [],
@@ -179,10 +179,10 @@ function ArrayField({
     </React.Fragment>
   );
 }
-export default function BookUpdateForm(props) {
+export default function PageUpdateForm(props) {
   const {
     id: idProp,
-    book: bookModelProp,
+    page: pageModelProp,
     onSuccess,
     onError,
     onSubmit,
@@ -192,73 +192,80 @@ export default function BookUpdateForm(props) {
     ...rest
   } = props;
   const initialValues = {
-    title: "",
-    tableOfContents: "",
-    imagePath: "",
-    pages: [],
+    bookId: undefined,
+    bookTitle: "",
+    pageId: "",
+    recipeStory: "",
+    steps: [],
   };
-  const [title, setTitle] = React.useState(initialValues.title);
-  const [tableOfContents, setTableOfContents] = React.useState(
-    initialValues.tableOfContents
+  const [bookId, setBookId] = React.useState(initialValues.bookId);
+  const [bookIdLoading, setBookIdLoading] = React.useState(false);
+  const [bookIdRecords, setBookIdRecords] = React.useState([]);
+  const [selectedBookIdRecords, setSelectedBookIdRecords] = React.useState([]);
+  const [bookTitle, setBookTitle] = React.useState(initialValues.bookTitle);
+  const [pageId, setPageId] = React.useState(initialValues.pageId);
+  const [recipeStory, setRecipeStory] = React.useState(
+    initialValues.recipeStory
   );
-  const [imagePath, setImagePath] = React.useState(initialValues.imagePath);
-  const [pages, setPages] = React.useState(initialValues.pages);
-  const [pagesLoading, setPagesLoading] = React.useState(false);
-  const [pagesRecords, setPagesRecords] = React.useState([]);
+  const [steps, setSteps] = React.useState(initialValues.steps);
   const autocompleteLength = 10;
   const [errors, setErrors] = React.useState({});
   const resetStateValues = () => {
-    const cleanValues = bookRecord
-      ? { ...initialValues, ...bookRecord, pages: linkedPages }
+    const cleanValues = pageRecord
+      ? { ...initialValues, ...pageRecord, bookId }
       : initialValues;
-    setTitle(cleanValues.title);
-    setTableOfContents(cleanValues.tableOfContents);
-    setImagePath(cleanValues.imagePath);
-    setPages(cleanValues.pages ?? []);
-    setCurrentPagesValue(undefined);
-    setCurrentPagesDisplayValue("");
+    setBookId(cleanValues.bookId);
+    setCurrentBookIdValue(undefined);
+    setCurrentBookIdDisplayValue("");
+    setBookTitle(cleanValues.bookTitle);
+    setPageId(cleanValues.pageId);
+    setRecipeStory(cleanValues.recipeStory);
+    setSteps(cleanValues.steps ?? []);
+    setCurrentStepsValue("");
     setErrors({});
   };
-  const [bookRecord, setBookRecord] = React.useState(bookModelProp);
-  const [linkedPages, setLinkedPages] = React.useState([]);
-  const canUnlinkPages = false;
+  const [pageRecord, setPageRecord] = React.useState(pageModelProp);
   React.useEffect(() => {
     const queryData = async () => {
       const record = idProp
         ? (
             await client.graphql({
-              query: getBook.replaceAll("__typename", ""),
+              query: getPage.replaceAll("__typename", ""),
               variables: { id: idProp },
             })
+          )?.data?.getPage
+        : pageModelProp;
+      const bookIdRecord = record ? record.bookId : undefined;
+      const bookRecord = bookIdRecord
+        ? (
+            await client.graphql({
+              query: getBook.replaceAll("__typename", ""),
+              variables: { id: bookIdRecord },
+            })
           )?.data?.getBook
-        : bookModelProp;
-      const linkedPages = record?.pages?.items ?? [];
-      setLinkedPages(linkedPages);
-      setBookRecord(record);
+        : undefined;
+      setBookId(bookIdRecord);
+      setSelectedBookIdRecords([bookRecord]);
+      setPageRecord(record);
     };
     queryData();
-  }, [idProp, bookModelProp]);
-  React.useEffect(resetStateValues, [bookRecord, linkedPages]);
-  const [currentPagesDisplayValue, setCurrentPagesDisplayValue] =
+  }, [idProp, pageModelProp]);
+  React.useEffect(resetStateValues, [pageRecord, bookId]);
+  const [currentBookIdDisplayValue, setCurrentBookIdDisplayValue] =
     React.useState("");
-  const [currentPagesValue, setCurrentPagesValue] = React.useState(undefined);
-  const pagesRef = React.createRef();
-  const getIDValue = {
-    pages: (r) => JSON.stringify({ id: r?.id }),
-  };
-  const pagesIdSet = new Set(
-    Array.isArray(pages)
-      ? pages.map((r) => getIDValue.pages?.(r))
-      : getIDValue.pages?.(pages)
-  );
+  const [currentBookIdValue, setCurrentBookIdValue] = React.useState(undefined);
+  const bookIdRef = React.createRef();
+  const [currentStepsValue, setCurrentStepsValue] = React.useState("");
+  const stepsRef = React.createRef();
   const getDisplayValue = {
-    pages: (r) => `${r?.bookTitle ? r?.bookTitle + " - " : ""}${r?.id}`,
+    bookId: (r) => `${r?.title ? r?.title + " - " : ""}${r?.id}`,
   };
   const validations = {
-    title: [{ type: "Required" }],
-    tableOfContents: [],
-    imagePath: [],
-    pages: [],
+    bookId: [{ type: "Required" }],
+    bookTitle: [{ type: "Required" }],
+    pageId: [{ type: "Required" }],
+    recipeStory: [],
+    steps: [],
   };
   const runValidationTasks = async (
     fieldName,
@@ -277,15 +284,15 @@ export default function BookUpdateForm(props) {
     setErrors((errors) => ({ ...errors, [fieldName]: validationResponse }));
     return validationResponse;
   };
-  const fetchPagesRecords = async (value) => {
-    setPagesLoading(true);
+  const fetchBookIdRecords = async (value) => {
+    setBookIdLoading(true);
     const newOptions = [];
     let newNext = "";
     while (newOptions.length < autocompleteLength && newNext != null) {
       const variables = {
         limit: autocompleteLength * 5,
         filter: {
-          or: [{ bookTitle: { contains: value } }, { id: { contains: value } }],
+          or: [{ title: { contains: value } }, { id: { contains: value } }],
         },
       };
       if (newNext) {
@@ -293,21 +300,19 @@ export default function BookUpdateForm(props) {
       }
       const result = (
         await client.graphql({
-          query: listPages.replaceAll("__typename", ""),
+          query: listBooks.replaceAll("__typename", ""),
           variables,
         })
-      )?.data?.listPages?.items;
-      var loaded = result.filter(
-        (item) => !pagesIdSet.has(getIDValue.pages?.(item))
-      );
+      )?.data?.listBooks?.items;
+      var loaded = result.filter((item) => bookId !== item.id);
       newOptions.push(...loaded);
       newNext = result.nextToken;
     }
-    setPagesRecords(newOptions.slice(0, autocompleteLength));
-    setPagesLoading(false);
+    setBookIdRecords(newOptions.slice(0, autocompleteLength));
+    setBookIdLoading(false);
   };
   React.useEffect(() => {
-    fetchPagesRecords("");
+    fetchBookIdRecords("");
   }, []);
   return (
     <Grid
@@ -318,31 +323,24 @@ export default function BookUpdateForm(props) {
       onSubmit={async (event) => {
         event.preventDefault();
         let modelFields = {
-          title,
-          tableOfContents: tableOfContents ?? null,
-          imagePath: imagePath ?? null,
-          pages: pages ?? null,
+          bookId,
+          bookTitle,
+          pageId,
+          recipeStory: recipeStory ?? null,
+          steps: steps ?? null,
         };
         const validationResponses = await Promise.all(
           Object.keys(validations).reduce((promises, fieldName) => {
             if (Array.isArray(modelFields[fieldName])) {
               promises.push(
                 ...modelFields[fieldName].map((item) =>
-                  runValidationTasks(
-                    fieldName,
-                    item,
-                    getDisplayValue[fieldName]
-                  )
+                  runValidationTasks(fieldName, item)
                 )
               );
               return promises;
             }
             promises.push(
-              runValidationTasks(
-                fieldName,
-                modelFields[fieldName],
-                getDisplayValue[fieldName]
-              )
+              runValidationTasks(fieldName, modelFields[fieldName])
             );
             return promises;
           }, [])
@@ -359,71 +357,15 @@ export default function BookUpdateForm(props) {
               modelFields[key] = null;
             }
           });
-          const promises = [];
-          const pagesToLink = [];
-          const pagesToUnLink = [];
-          const pagesSet = new Set();
-          const linkedPagesSet = new Set();
-          pages.forEach((r) => pagesSet.add(getIDValue.pages?.(r)));
-          linkedPages.forEach((r) => linkedPagesSet.add(getIDValue.pages?.(r)));
-          linkedPages.forEach((r) => {
-            if (!pagesSet.has(getIDValue.pages?.(r))) {
-              pagesToUnLink.push(r);
-            }
-          });
-          pages.forEach((r) => {
-            if (!linkedPagesSet.has(getIDValue.pages?.(r))) {
-              pagesToLink.push(r);
-            }
-          });
-          pagesToUnLink.forEach((original) => {
-            if (!canUnlinkPages) {
-              throw Error(
-                `Page ${original.id} cannot be unlinked from Book because bookId is a required field.`
-              );
-            }
-            promises.push(
-              client.graphql({
-                query: updatePage.replaceAll("__typename", ""),
-                variables: {
-                  input: {
-                    id: original.id,
-                    bookId: null,
-                  },
-                },
-              })
-            );
-          });
-          pagesToLink.forEach((original) => {
-            promises.push(
-              client.graphql({
-                query: updatePage.replaceAll("__typename", ""),
-                variables: {
-                  input: {
-                    id: original.id,
-                    bookId: bookRecord.id,
-                  },
-                },
-              })
-            );
-          });
-          const modelFieldsToSave = {
-            title: modelFields.title,
-            tableOfContents: modelFields.tableOfContents ?? null,
-            imagePath: modelFields.imagePath ?? null,
-          };
-          promises.push(
-            client.graphql({
-              query: updateBook.replaceAll("__typename", ""),
-              variables: {
-                input: {
-                  id: bookRecord.id,
-                  ...modelFieldsToSave,
-                },
+          await client.graphql({
+            query: updatePage.replaceAll("__typename", ""),
+            variables: {
+              input: {
+                id: pageRecord.id,
+                ...modelFields,
               },
-            })
-          );
-          await Promise.all(promises);
+            },
+          });
           if (onSuccess) {
             onSuccess(modelFields);
           }
@@ -434,168 +376,235 @@ export default function BookUpdateForm(props) {
           }
         }
       }}
-      {...getOverrideProps(overrides, "BookUpdateForm")}
+      {...getOverrideProps(overrides, "PageUpdateForm")}
       {...rest}
     >
+      <ArrayField
+        lengthLimit={1}
+        onChange={async (items) => {
+          let value = items[0];
+          if (onChange) {
+            const modelFields = {
+              bookId: value,
+              bookTitle,
+              pageId,
+              recipeStory,
+              steps,
+            };
+            const result = onChange(modelFields);
+            value = result?.bookId ?? value;
+          }
+          setBookId(value);
+          setCurrentBookIdValue(undefined);
+        }}
+        currentFieldValue={currentBookIdValue}
+        label={"Book id"}
+        items={bookId ? [bookId] : []}
+        hasError={errors?.bookId?.hasError}
+        runValidationTasks={async () =>
+          await runValidationTasks("bookId", currentBookIdValue)
+        }
+        errorMessage={errors?.bookId?.errorMessage}
+        getBadgeText={(value) =>
+          value
+            ? getDisplayValue.bookId(
+                bookIdRecords.find((r) => r.id === value) ??
+                  selectedBookIdRecords.find((r) => r.id === value)
+              )
+            : ""
+        }
+        setFieldValue={(value) => {
+          setCurrentBookIdDisplayValue(
+            value
+              ? getDisplayValue.bookId(
+                  bookIdRecords.find((r) => r.id === value) ??
+                    selectedBookIdRecords.find((r) => r.id === value)
+                )
+              : ""
+          );
+          setCurrentBookIdValue(value);
+          const selectedRecord = bookIdRecords.find((r) => r.id === value);
+          if (selectedRecord) {
+            setSelectedBookIdRecords([selectedRecord]);
+          }
+        }}
+        inputFieldRef={bookIdRef}
+        defaultFieldValue={""}
+      >
+        <Autocomplete
+          label="Book id"
+          isRequired={true}
+          isReadOnly={false}
+          placeholder="Search Book"
+          value={currentBookIdDisplayValue}
+          options={bookIdRecords
+            .filter(
+              (r, i, arr) =>
+                arr.findIndex((member) => member?.id === r?.id) === i
+            )
+            .map((r) => ({
+              id: r?.id,
+              label: getDisplayValue.bookId?.(r),
+            }))}
+          isLoading={bookIdLoading}
+          onSelect={({ id, label }) => {
+            setCurrentBookIdValue(id);
+            setCurrentBookIdDisplayValue(label);
+            runValidationTasks("bookId", label);
+          }}
+          onClear={() => {
+            setCurrentBookIdDisplayValue("");
+          }}
+          defaultValue={bookId}
+          onChange={(e) => {
+            let { value } = e.target;
+            fetchBookIdRecords(value);
+            if (errors.bookId?.hasError) {
+              runValidationTasks("bookId", value);
+            }
+            setCurrentBookIdDisplayValue(value);
+            setCurrentBookIdValue(undefined);
+          }}
+          onBlur={() => runValidationTasks("bookId", currentBookIdValue)}
+          errorMessage={errors.bookId?.errorMessage}
+          hasError={errors.bookId?.hasError}
+          ref={bookIdRef}
+          labelHidden={true}
+          {...getOverrideProps(overrides, "bookId")}
+        ></Autocomplete>
+      </ArrayField>
       <TextField
-        label="Title"
+        label="Book title"
         isRequired={true}
         isReadOnly={false}
-        value={title}
+        value={bookTitle}
         onChange={(e) => {
           let { value } = e.target;
           if (onChange) {
             const modelFields = {
-              title: value,
-              tableOfContents,
-              imagePath,
-              pages,
+              bookId,
+              bookTitle: value,
+              pageId,
+              recipeStory,
+              steps,
             };
             const result = onChange(modelFields);
-            value = result?.title ?? value;
+            value = result?.bookTitle ?? value;
           }
-          if (errors.title?.hasError) {
-            runValidationTasks("title", value);
+          if (errors.bookTitle?.hasError) {
+            runValidationTasks("bookTitle", value);
           }
-          setTitle(value);
+          setBookTitle(value);
         }}
-        onBlur={() => runValidationTasks("title", title)}
-        errorMessage={errors.title?.errorMessage}
-        hasError={errors.title?.hasError}
-        {...getOverrideProps(overrides, "title")}
+        onBlur={() => runValidationTasks("bookTitle", bookTitle)}
+        errorMessage={errors.bookTitle?.errorMessage}
+        hasError={errors.bookTitle?.hasError}
+        {...getOverrideProps(overrides, "bookTitle")}
       ></TextField>
       <TextField
-        label="Table of contents"
-        isRequired={false}
+        label="Page id"
+        isRequired={true}
         isReadOnly={false}
-        value={tableOfContents}
+        value={pageId}
         onChange={(e) => {
           let { value } = e.target;
           if (onChange) {
             const modelFields = {
-              title,
-              tableOfContents: value,
-              imagePath,
-              pages,
+              bookId,
+              bookTitle,
+              pageId: value,
+              recipeStory,
+              steps,
             };
             const result = onChange(modelFields);
-            value = result?.tableOfContents ?? value;
+            value = result?.pageId ?? value;
           }
-          if (errors.tableOfContents?.hasError) {
-            runValidationTasks("tableOfContents", value);
+          if (errors.pageId?.hasError) {
+            runValidationTasks("pageId", value);
           }
-          setTableOfContents(value);
+          setPageId(value);
         }}
-        onBlur={() => runValidationTasks("tableOfContents", tableOfContents)}
-        errorMessage={errors.tableOfContents?.errorMessage}
-        hasError={errors.tableOfContents?.hasError}
-        {...getOverrideProps(overrides, "tableOfContents")}
+        onBlur={() => runValidationTasks("pageId", pageId)}
+        errorMessage={errors.pageId?.errorMessage}
+        hasError={errors.pageId?.hasError}
+        {...getOverrideProps(overrides, "pageId")}
       ></TextField>
       <TextField
-        label="Image path"
+        label="Recipe story"
         isRequired={false}
         isReadOnly={false}
-        value={imagePath}
+        value={recipeStory}
         onChange={(e) => {
           let { value } = e.target;
           if (onChange) {
             const modelFields = {
-              title,
-              tableOfContents,
-              imagePath: value,
-              pages,
+              bookId,
+              bookTitle,
+              pageId,
+              recipeStory: value,
+              steps,
             };
             const result = onChange(modelFields);
-            value = result?.imagePath ?? value;
+            value = result?.recipeStory ?? value;
           }
-          if (errors.imagePath?.hasError) {
-            runValidationTasks("imagePath", value);
+          if (errors.recipeStory?.hasError) {
+            runValidationTasks("recipeStory", value);
           }
-          setImagePath(value);
+          setRecipeStory(value);
         }}
-        onBlur={() => runValidationTasks("imagePath", imagePath)}
-        errorMessage={errors.imagePath?.errorMessage}
-        hasError={errors.imagePath?.hasError}
-        {...getOverrideProps(overrides, "imagePath")}
+        onBlur={() => runValidationTasks("recipeStory", recipeStory)}
+        errorMessage={errors.recipeStory?.errorMessage}
+        hasError={errors.recipeStory?.hasError}
+        {...getOverrideProps(overrides, "recipeStory")}
       ></TextField>
       <ArrayField
         onChange={async (items) => {
           let values = items;
           if (onChange) {
             const modelFields = {
-              title,
-              tableOfContents,
-              imagePath,
-              pages: values,
+              bookId,
+              bookTitle,
+              pageId,
+              recipeStory,
+              steps: values,
             };
             const result = onChange(modelFields);
-            values = result?.pages ?? values;
+            values = result?.steps ?? values;
           }
-          setPages(values);
-          setCurrentPagesValue(undefined);
-          setCurrentPagesDisplayValue("");
+          setSteps(values);
+          setCurrentStepsValue("");
         }}
-        currentFieldValue={currentPagesValue}
-        label={"Pages"}
-        items={pages}
-        hasError={errors?.pages?.hasError}
+        currentFieldValue={currentStepsValue}
+        label={"Steps"}
+        items={steps}
+        hasError={errors?.steps?.hasError}
         runValidationTasks={async () =>
-          await runValidationTasks("pages", currentPagesValue)
+          await runValidationTasks("steps", currentStepsValue)
         }
-        errorMessage={errors?.pages?.errorMessage}
-        getBadgeText={getDisplayValue.pages}
-        setFieldValue={(model) => {
-          setCurrentPagesDisplayValue(
-            model ? getDisplayValue.pages(model) : ""
-          );
-          setCurrentPagesValue(model);
-        }}
-        inputFieldRef={pagesRef}
+        errorMessage={errors?.steps?.errorMessage}
+        setFieldValue={setCurrentStepsValue}
+        inputFieldRef={stepsRef}
         defaultFieldValue={""}
       >
-        <Autocomplete
-          label="Pages"
+        <TextField
+          label="Steps"
           isRequired={false}
           isReadOnly={false}
-          placeholder="Search Page"
-          value={currentPagesDisplayValue}
-          options={pagesRecords
-            .filter((r) => !pagesIdSet.has(getIDValue.pages?.(r)))
-            .map((r) => ({
-              id: getIDValue.pages?.(r),
-              label: getDisplayValue.pages?.(r),
-            }))}
-          isLoading={pagesLoading}
-          onSelect={({ id, label }) => {
-            setCurrentPagesValue(
-              pagesRecords.find((r) =>
-                Object.entries(JSON.parse(id)).every(
-                  ([key, value]) => r[key] === value
-                )
-              )
-            );
-            setCurrentPagesDisplayValue(label);
-            runValidationTasks("pages", label);
-          }}
-          onClear={() => {
-            setCurrentPagesDisplayValue("");
-          }}
+          value={currentStepsValue}
           onChange={(e) => {
             let { value } = e.target;
-            fetchPagesRecords(value);
-            if (errors.pages?.hasError) {
-              runValidationTasks("pages", value);
+            if (errors.steps?.hasError) {
+              runValidationTasks("steps", value);
             }
-            setCurrentPagesDisplayValue(value);
-            setCurrentPagesValue(undefined);
+            setCurrentStepsValue(value);
           }}
-          onBlur={() => runValidationTasks("pages", currentPagesDisplayValue)}
-          errorMessage={errors.pages?.errorMessage}
-          hasError={errors.pages?.hasError}
-          ref={pagesRef}
+          onBlur={() => runValidationTasks("steps", currentStepsValue)}
+          errorMessage={errors.steps?.errorMessage}
+          hasError={errors.steps?.hasError}
+          ref={stepsRef}
           labelHidden={true}
-          {...getOverrideProps(overrides, "pages")}
-        ></Autocomplete>
+          {...getOverrideProps(overrides, "steps")}
+        ></TextField>
       </ArrayField>
       <Flex
         justifyContent="space-between"
@@ -608,7 +617,7 @@ export default function BookUpdateForm(props) {
             event.preventDefault();
             resetStateValues();
           }}
-          isDisabled={!(idProp || bookModelProp)}
+          isDisabled={!(idProp || pageModelProp)}
           {...getOverrideProps(overrides, "ResetButton")}
         ></Button>
         <Flex
@@ -620,7 +629,7 @@ export default function BookUpdateForm(props) {
             type="submit"
             variation="primary"
             isDisabled={
-              !(idProp || bookModelProp) ||
+              !(idProp || pageModelProp) ||
               Object.values(errors).some((e) => e?.hasError)
             }
             {...getOverrideProps(overrides, "SubmitButton")}

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { createPage as createPageMutation, updateBook as updateBookMutation} from '../graphql/mutations'; // Import listPages mutation
+import { createPage as createPageMutation, updateBook as updateBookMutation } from '../graphql/mutations';
 import { generateClient } from 'aws-amplify/api';
-import { listPages } from '../graphql/queries';
 import { listBooks } from '../graphql/queries';
 import '../Styles/AddToContentsForm.css';
 
@@ -12,7 +11,7 @@ const AddToContentsForm = ({ title, tableOfContents, setTableOfContents, setShow
     const [isLink, setIsLink] = useState(false);
 
     const handleContentChange = (e) => {
-        setPageId(e.target.value.trim());
+        setPageId(e.target.value);
     };
 
     const handleCheckboxChange = (e) => {
@@ -21,51 +20,41 @@ const AddToContentsForm = ({ title, tableOfContents, setTableOfContents, setShow
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!pageId) {
-            alert("Please enter a valid Page ID");
-            return;
-        }
+
         let contentToAdd = pageId;
         if (isLink) {
             contentToAdd = `<a href="${pageId}">${pageId}</a>`;
         }
+
         try {
             const apiData = await client.graphql({
                 query: listBooks,
                 variables: { filter: { title: { eq: title } } },
             });
+
             if (apiData.data.listBooks.items.length === 0) {
                 console.error(`No book found with title: ${title}`);
-                alert("No book found with the given title");
                 return;
             }
+
             const book = apiData.data.listBooks.items[0];
             const bookId = book.id;
-            const existingPage = await client.graphql({
-                query: listPages, // Change to listPages mutation
-                variables: { filter: { pageId: { eq: pageId } } },
-            });
-            if (existingPage.data.listPages.items.length > 0) {
-                alert("A page with this ID already exists. Please use a different ID.");
-                return;
-            }
+
             const pageData = {
                 bookId,
                 bookTitle: title,
                 pageId: pageId,
-                recipeStory: "This is a placeholder story.",
-                ingredients: [{ name: "Example Ingredient", quantity: "1", unit: "cup" }],
-                steps: ["Example step 1", "Example step 2"]
+                recipeStory: '',
+                ingredients: [],
+                steps: []
             };
+
             await client.graphql({
                 query: createPageMutation,
                 variables: { input: pageData }
             });
+
             const updatedTableOfContents = [...tableOfContents, contentToAdd];
-            await client.graphql({
-                query: listBooks,
-                variables: { filter: { title: { eq: title } } },
-            });
             await client.graphql({
                 query: updateBookMutation,
                 variables: {
@@ -75,12 +64,12 @@ const AddToContentsForm = ({ title, tableOfContents, setTableOfContents, setShow
                     }
                 }
             });
+
             setTableOfContents(updatedTableOfContents);
             setPageId('');
             setShowForm(false);
         } catch (error) {
             console.error('Error adding content:', error);
-            alert("Failed to add page content. Please try again.");
         }
     };
 

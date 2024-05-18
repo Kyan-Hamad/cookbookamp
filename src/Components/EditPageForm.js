@@ -55,7 +55,6 @@ const EditPageForm = ({ onSave, pageId, bookId, bookTitle, recipeStory: initialS
         }
     };
 
-    // Define metric and US units, including the dry versions
     const metricUnits = ['L', 'ml', 'g', 'kg'].sort();
     const usUnits = ['teaspoon', 'dry tablespoon', 'tablespoon', 'dry teaspoon', 'fl oz', 'cup', 'dry cup', 'pints', 'quarts', 'gallons', 'oz', 'lbs'].sort();
 

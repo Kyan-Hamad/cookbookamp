@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { updatePage as updatePageMutation } from '../graphql/mutations';
+import { updatePage } from '../graphql/mutations';
 import { generateClient } from 'aws-amplify/api';
 import '../Styles/EditPageForm.css';
 
 const client = generateClient();
 
-const EditPageForm = ({ onSave, pageId, recipeStory: initialStory, ingredients: initialIngredients, steps: initialSteps }) => {
+const EditPageForm = ({ onSave, pageId, bookId, bookTitle, recipeStory: initialStory, ingredients: initialIngredients, steps: initialSteps }) => {
     const [recipeStory, setRecipeStory] = useState(initialStory || '');
     const [ingredients, setIngredients] = useState(initialIngredients || [{ name: '', quantity: '', unit: '' }]);
     const [steps, setSteps] = useState(initialSteps || ['']);
@@ -33,13 +33,19 @@ const EditPageForm = ({ onSave, pageId, recipeStory: initialStory, ingredients: 
     const submitForm = async () => {
         try {
             await client.graphql({
-                query: updatePageMutation,
+                query: updatePage,
                 variables: {
                     input: {
                         id: pageId,
+                        bookId: bookId,
+                        bookTitle: bookTitle,
                         recipeStory,
-                        ingredients,
-                        steps
+                        ingredients: ingredients.map(ing => ({
+                            name: ing.name,
+                            quantity: parseFloat(ing.quantity),
+                            unit: ing.unit
+                        })),
+                        steps: steps.map(step => ({ description: step }))
                     }
                 }
             });

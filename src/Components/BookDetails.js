@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import '../Styles/BookDetails.css';
-import { listBooks } from '../graphql/queries';
-import {updateBook as updateBookMutation } from '../graphql/mutations';
+import { listPages } from '../graphql/queries'; // Import listPages query
+import { updateBook as updateBookMutation } from '../graphql/mutations';
 import { getUrl } from 'aws-amplify/storage';
 import { generateClient } from 'aws-amplify/api';
 import AddToContentsForm from './AddtoContentsForm';
@@ -19,30 +19,18 @@ const BookDetails = () => {
     const [books, setBooks] = useState([]);
 
     useEffect(() => {
-        fetchBooks();
+        fetchTableOfContents();
     }, []);
 
-    async function fetchBooks() {
+    async function fetchTableOfContents() {
         try {
-            const apiData = await client.graphql({ query: listBooks });
-            const booksFromAPI = apiData.data.listBooks.items;
-            await Promise.all(
-                booksFromAPI.map(async (book) => {
-                    if (book.imagePath) {
-                        const url = await getUrl({ key: book.imagePath });
-                        book.image = url.url;
-                    }
-                    return book;
-                })
-            );
-            setBooks(booksFromAPI);
-
-            const currentBook = booksFromAPI.find((book) => book.title === title);
-            if (currentBook && currentBook.tableOfContents) {
-                setTableOfContents(currentBook.tableOfContents.split('\n'));
-            }
+            // Fetch the list of pages associated with the current book
+            const apiData = await client.graphql({ query: listPages, variables: { filter: { bookTitle: { eq: title } } } });
+            const pagesFromAPI = apiData.data.listPages.items;
+            const toc = pagesFromAPI.map(page => page.pageId); // Extract page IDs for the table of contents
+            setTableOfContents(toc);
         } catch (error) {
-            console.error('Error fetching books:', error);
+            console.error('Error fetching table of contents:', error);
         }
     }
 
@@ -82,20 +70,24 @@ const BookDetails = () => {
 
         try {
             const apiData = await client.graphql({
-                query: listBooks,
-                variables: { filter: { title: { eq: title } } },
+                query: listPages,
+                variables: { filter: { bookTitle: { eq: title } } },
             });
 
-            const book = apiData.data.listBooks.items[0];
-            await client.graphql({
-                query: updateBookMutation,
-                variables: {
-                    input: {
-                        id: book.id,
-                        tableOfContents: items.join('\n')
+            const pagesFromAPI = apiData.data.listPages.items;
+            const pageIds = pagesFromAPI.map(page => page.id); // Extract page IDs for the table of contents
+
+            await Promise.all(pageIds.map(async (pageId, index) => {
+                await client.graphql({
+                    query: updateBookMutation,
+                    variables: {
+                        input: {
+                            id: pageId,
+                            pageId: items[index] // Update the order of page IDs
+                        }
                     }
-                }
-            });
+                });
+            }));
         } catch (error) {
             console.error('Error updating table of contents:', error);
         }

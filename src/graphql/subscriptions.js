@@ -8,10 +8,6 @@ export const onCreateBook = /* GraphQL */ `
       title
       tableOfContents
       imagePath
-      pages {
-        nextToken
-        __typename
-      }
       createdAt
       updatedAt
       __typename
@@ -25,10 +21,6 @@ export const onUpdateBook = /* GraphQL */ `
       title
       tableOfContents
       imagePath
-      pages {
-        nextToken
-        __typename
-      }
       createdAt
       updatedAt
       __typename
@@ -42,10 +34,6 @@ export const onDeleteBook = /* GraphQL */ `
       title
       tableOfContents
       imagePath
-      pages {
-        nextToken
-        __typename
-      }
       createdAt
       updatedAt
       __typename

@@ -8,10 +8,6 @@ export const getBook = /* GraphQL */ `
       title
       tableOfContents
       imagePath
-      pages {
-        nextToken
-        __typename
-      }
       createdAt
       updatedAt
       __typename

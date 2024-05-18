@@ -5,7 +5,7 @@
  **************************************************************************/
 
 import * as React from "react";
-import { AutocompleteProps, GridProps, TextFieldProps } from "@aws-amplify/ui-react";
+import { GridProps, TextFieldProps } from "@aws-amplify/ui-react";
 export declare type EscapeHatchProps = {
     [elementHierarchy: string]: Record<string, unknown>;
 } | null;
@@ -38,7 +38,7 @@ export declare type PageUpdateFormValidationValues = {
 export declare type PrimitiveOverrideProps<T> = Partial<T> & React.DOMAttributes<HTMLDivElement>;
 export declare type PageUpdateFormOverridesProps = {
     PageUpdateFormGrid?: PrimitiveOverrideProps<GridProps>;
-    bookId?: PrimitiveOverrideProps<AutocompleteProps>;
+    bookId?: PrimitiveOverrideProps<TextFieldProps>;
     bookTitle?: PrimitiveOverrideProps<TextFieldProps>;
     pageId?: PrimitiveOverrideProps<TextFieldProps>;
     recipeStory?: PrimitiveOverrideProps<TextFieldProps>;

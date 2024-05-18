@@ -7,7 +7,6 @@
 /* eslint-disable */
 import * as React from "react";
 import {
-  Autocomplete,
   Badge,
   Button,
   Divider,
@@ -21,7 +20,6 @@ import {
 } from "@aws-amplify/ui-react";
 import { fetchByPath, getOverrideProps, validateField } from "./utils";
 import { generateClient } from "aws-amplify/api";
-import { listBooks } from "../graphql/queries";
 import { createPage } from "../graphql/mutations";
 const client = generateClient();
 function ArrayField({
@@ -191,28 +189,22 @@ export default function UpdatePage(props) {
     ...rest
   } = props;
   const initialValues = {
-    bookId: undefined,
+    bookId: "",
     bookTitle: "",
     pageId: "",
     recipeStory: "",
     steps: [],
   };
   const [bookId, setBookId] = React.useState(initialValues.bookId);
-  const [bookIdLoading, setBookIdLoading] = React.useState(false);
-  const [bookIdRecords, setBookIdRecords] = React.useState([]);
-  const [selectedBookIdRecords, setSelectedBookIdRecords] = React.useState([]);
   const [bookTitle, setBookTitle] = React.useState(initialValues.bookTitle);
   const [pageId, setPageId] = React.useState(initialValues.pageId);
   const [recipeStory, setRecipeStory] = React.useState(
     initialValues.recipeStory
   );
   const [steps, setSteps] = React.useState(initialValues.steps);
-  const autocompleteLength = 10;
   const [errors, setErrors] = React.useState({});
   const resetStateValues = () => {
     setBookId(initialValues.bookId);
-    setCurrentBookIdValue(undefined);
-    setCurrentBookIdDisplayValue("");
     setBookTitle(initialValues.bookTitle);
     setPageId(initialValues.pageId);
     setRecipeStory(initialValues.recipeStory);
@@ -220,15 +212,8 @@ export default function UpdatePage(props) {
     setCurrentStepsValue("");
     setErrors({});
   };
-  const [currentBookIdDisplayValue, setCurrentBookIdDisplayValue] =
-    React.useState("");
-  const [currentBookIdValue, setCurrentBookIdValue] = React.useState(undefined);
-  const bookIdRef = React.createRef();
   const [currentStepsValue, setCurrentStepsValue] = React.useState("");
   const stepsRef = React.createRef();
-  const getDisplayValue = {
-    bookId: (r) => `${r?.title ? r?.title + " - " : ""}${r?.id}`,
-  };
   const validations = {
     bookId: [{ type: "Required" }],
     bookTitle: [{ type: "Required" }],
@@ -253,36 +238,6 @@ export default function UpdatePage(props) {
     setErrors((errors) => ({ ...errors, [fieldName]: validationResponse }));
     return validationResponse;
   };
-  const fetchBookIdRecords = async (value) => {
-    setBookIdLoading(true);
-    const newOptions = [];
-    let newNext = "";
-    while (newOptions.length < autocompleteLength && newNext != null) {
-      const variables = {
-        limit: autocompleteLength * 5,
-        filter: {
-          or: [{ title: { contains: value } }, { id: { contains: value } }],
-        },
-      };
-      if (newNext) {
-        variables["nextToken"] = newNext;
-      }
-      const result = (
-        await client.graphql({
-          query: listBooks.replaceAll("__typename", ""),
-          variables,
-        })
-      )?.data?.listBooks?.items;
-      var loaded = result.filter((item) => bookId !== item.id);
-      newOptions.push(...loaded);
-      newNext = result.nextToken;
-    }
-    setBookIdRecords(newOptions.slice(0, autocompleteLength));
-    setBookIdLoading(false);
-  };
-  React.useEffect(() => {
-    fetchBookIdRecords("");
-  }, []);
   return (
     <Grid
       as="form"
@@ -350,10 +305,13 @@ export default function UpdatePage(props) {
       {...getOverrideProps(overrides, "UpdatePage")}
       {...rest}
     >
-      <ArrayField
-        lengthLimit={1}
-        onChange={async (items) => {
-          let value = items[0];
+      <TextField
+        label="Book id"
+        isRequired={true}
+        isReadOnly={false}
+        value={bookId}
+        onChange={(e) => {
+          let { value } = e.target;
           if (onChange) {
             const modelFields = {
               bookId: value,
@@ -365,84 +323,16 @@ export default function UpdatePage(props) {
             const result = onChange(modelFields);
             value = result?.bookId ?? value;
           }
-          setBookId(value);
-          setCurrentBookIdValue(undefined);
-        }}
-        currentFieldValue={currentBookIdValue}
-        label={"Book id"}
-        items={bookId ? [bookId] : []}
-        hasError={errors?.bookId?.hasError}
-        runValidationTasks={async () =>
-          await runValidationTasks("bookId", currentBookIdValue)
-        }
-        errorMessage={errors?.bookId?.errorMessage}
-        getBadgeText={(value) =>
-          value
-            ? getDisplayValue.bookId(
-                bookIdRecords.find((r) => r.id === value) ??
-                  selectedBookIdRecords.find((r) => r.id === value)
-              )
-            : ""
-        }
-        setFieldValue={(value) => {
-          setCurrentBookIdDisplayValue(
-            value
-              ? getDisplayValue.bookId(
-                  bookIdRecords.find((r) => r.id === value) ??
-                    selectedBookIdRecords.find((r) => r.id === value)
-                )
-              : ""
-          );
-          setCurrentBookIdValue(value);
-          const selectedRecord = bookIdRecords.find((r) => r.id === value);
-          if (selectedRecord) {
-            setSelectedBookIdRecords([selectedRecord]);
+          if (errors.bookId?.hasError) {
+            runValidationTasks("bookId", value);
           }
+          setBookId(value);
         }}
-        inputFieldRef={bookIdRef}
-        defaultFieldValue={""}
-      >
-        <Autocomplete
-          label="Book id"
-          isRequired={true}
-          isReadOnly={false}
-          placeholder="Search Book"
-          value={currentBookIdDisplayValue}
-          options={bookIdRecords
-            .filter(
-              (r, i, arr) =>
-                arr.findIndex((member) => member?.id === r?.id) === i
-            )
-            .map((r) => ({
-              id: r?.id,
-              label: getDisplayValue.bookId?.(r),
-            }))}
-          isLoading={bookIdLoading}
-          onSelect={({ id, label }) => {
-            setCurrentBookIdValue(id);
-            setCurrentBookIdDisplayValue(label);
-            runValidationTasks("bookId", label);
-          }}
-          onClear={() => {
-            setCurrentBookIdDisplayValue("");
-          }}
-          onChange={(e) => {
-            let { value } = e.target;
-            fetchBookIdRecords(value);
-            if (errors.bookId?.hasError) {
-              runValidationTasks("bookId", value);
-            }
-            setCurrentBookIdDisplayValue(value);
-            setCurrentBookIdValue(undefined);
-          }}
-          onBlur={() => runValidationTasks("bookId", currentBookIdValue)}
-          errorMessage={errors.bookId?.errorMessage}
-          hasError={errors.bookId?.hasError}
-          ref={bookIdRef}
-          labelHidden={true}
-          {...getOverrideProps(overrides, "bookId")}
-        ></Autocomplete>
-      </ArrayField>
+        onBlur={() => runValidationTasks("bookId", bookId)}
+        errorMessage={errors.bookId?.errorMessage}
+        hasError={errors.bookId?.hasError}
+        {...getOverrideProps(overrides, "bookId")}
+      ></TextField>
       <TextField
         label="Book title"
         isRequired={true}

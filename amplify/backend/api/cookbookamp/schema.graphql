@@ -3,7 +3,6 @@ type Book @model @auth(rules: [{allow: public}]) {
   title: String!
   tableOfContents: String
   imagePath: String
-  pages: [Page] @hasMany(indexName: "byBook", fields: ["id"])
 }
 
 type Page @model @auth(rules: [{allow: public}]) {
